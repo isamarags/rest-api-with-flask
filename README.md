@@ -3,6 +3,15 @@ RESTful API using Python Flask that allows users to login in a platform.
 <br> <br>
 
 ### Requirements
+* Python 3
+* PostgreSQL
+
+#### Install pipenv package manager:
+`$ python -m venv .venv`
+
+#### Install libraries and binaries:
+`$.venv\Scripts\activate`
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -17,7 +26,7 @@ To test the API using Postman, install postman agent in your OS and call the API
 
 ### Endpoints
 
-#### Fetch products using name, category, subcategory
+#### Fetch users
 - [GET] `/teste` - Get test: `test`
 <br></br>
 - [GET] `/users` - Get all users

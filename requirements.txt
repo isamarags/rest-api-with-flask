@@ -2,3 +2,6 @@ flask
 Flask-SQLAlchemy
 Werkzeug
 psycopg2
+pyjwt
+flask-jwt-extended
+Flask-OAuthlib

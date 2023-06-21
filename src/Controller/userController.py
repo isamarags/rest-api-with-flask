@@ -1,11 +1,14 @@
-from flask import Blueprint, jsonify, request, make_response
-from flask_jwt_extended import (
-    jwt_required, create_access_token, get_jwt_identity
-)
+from flask import Flask, Blueprint, jsonify, request, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User
+import datetime
+from oauth import token_required
+import jwt
 
 user_bp = Blueprint('/', __name__, url_prefix='/')
+app = Flask(__name__)
+app.config['JWT_SECRET_KEY'] = 'teste'
+app.config['DEBUG'] = True
 
 # Criando novo user
 @user_bp.route('/users', methods=['POST'])
@@ -22,17 +25,21 @@ def create_user():
     return make_response(jsonify({'message': 'user created successfully', 'user': new_user.json()}), 201)
   else:
     return make_response(jsonify({'message': 'invalid data'}), 400)
+  
 
 # consultar todos dados
 @user_bp.route('/users', methods=['GET'])
-# @jwt_required()
+@token_required
 def users():
   users = User.query.all()
-  return make_response(jsonify({'users': [user.json() for user in users]}), 200)
+
+  if users:
+    return make_response(jsonify({'users': [user.json() for user in users]}), 200)
+  else:
+    return make_response(jsonify({'message': 'No users found'}), 404)
 
 # consultar por id
-@user_bp.route('/users/<int:id>', methods=['GET'])
-# @jwt_required()
+@user_bp.route('/user/<int:id>', methods=['GET'])
 def get_user(id):
   user = User.query.filter_by(id = id).first()
   if user:
@@ -40,8 +47,7 @@ def get_user(id):
   return make_response(jsonify({'message': 'user not found'}), 404)
 
 # editar usuario
-@user_bp.route('/users/<int:id>', methods=['PUT'])
-# @jwt_required()
+@user_bp.route('/user/<int:id>', methods=['PUT'])
 def update_user(id):
   data = request.get_json()
   username = data.get('username')
@@ -62,8 +68,7 @@ def update_user(id):
     return make_response(jsonify({'message': 'user not found'}), 404)
 
 # excluir
-@user_bp.route('/users/<int:id>', methods=['DELETE'])
-# @jwt_required()
+@user_bp.route('/user/<int:id>', methods=['DELETE'])
 def delete_user(id):
   user = User.query.filter_by(id = id).first()
   if user:
@@ -74,7 +79,7 @@ def delete_user(id):
 
 ############## auth test
 
-@user_bp.route('/login', methods=['GET'])
+@user_bp.route('/login', methods=['POST'])
 def login():
   username = request.json['username']
   password = request.json['password']
@@ -82,19 +87,17 @@ def login():
   user = User.query.filter_by(username=username).first()
 
   if user and check_password_hash(user.password_hash, password):
-    access_token = create_access_token(identity=user.id)
+    exp = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+    jwt_token_encoded = jwt.encode({'id': user.id, 'exp': exp}, key=app.config['JWT_SECRET_KEY'], algorithm='HS256')
 
-    user.access_token = access_token
-    db.session.commit()
+    response = jsonify(
+      {'message': 'logged in succesfully', 
+        'id': user.id, 
+        'access_token': jwt_token_encoded, 
+        'expiration_time': exp}
+    )
 
-    return make_response(jsonify({'access_token': access_token}), 200)
+    return response
+
   else:
     return make_response(jsonify({'message': 'Invalid username or password'}), 401)
-
-# rota protegida que requer o token para acesso
-@user_bp.route('/protected', methods=['GET'])
-@jwt_required()
-def protected():
-  current_user_id = get_jwt_identity()
-  user = User.query.get(current_user_id)
-  return make_response(jsonify({'user': user.json()}), 200)

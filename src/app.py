@@ -1,18 +1,22 @@
 from flask import Flask
-from models import db
-from Controller import userController, authController
-from Controller.userController import user_app_bp as user_bp
-from Controller.authController import auth_app_bp as auth_bp
+from extensions import db, api
+from Controller.userController import ns as user_ns
+from Controller.authController import ns as auth_ns
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/users'
+api.init_app(app)
 
+api.title = "Users API"
+api.description = "API para gerenciamento de usuários"
+api.version = "1.0"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/users'
 with app.app_context():
   db.init_app(app)
   db.create_all()
 
-app.register_blueprint(user_bp, name='user')
-app.register_blueprint(auth_bp, name='auth')
+api.add_namespace(user_ns)
+api.add_namespace(auth_ns)
 
 if __name__ == "__main__":
   app.run(debug=True)

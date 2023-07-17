@@ -1,33 +1,48 @@
-from flask import Flask, jsonify, request, make_response, Blueprint
+from flask import jsonify, request, make_response, Flask
 import jwt
 import datetime
-from models import User
+from models import User, login_model
+from extensions import api
 from werkzeug.security import check_password_hash
+from flask_restx import Resource, fields, Namespace
 
-auth_app_bp = Blueprint('/', __name__, url_prefix='/')
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = 'teste'
 app.config['DEBUG'] = True
 
-@auth_app_bp.route('/login', methods=['POST'])
-def login():
-  username = request.json['username']
-  password = request.json['password']
+authorizations = {
+  "jsonWebToken": {
+    "type": "apiKey",
+    "in": "header",
+    "name": "Authorization"
+    }
+}
 
-  user = User.query.filter_by(username=username).first()
+ns = Namespace("Auth API", authorizations=authorizations)
 
-  if user and check_password_hash(user.password_hash, password):
-    exp = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
-    jwt_token_encoded = jwt.encode({'id': user.id, 'exp': exp}, key=app.config['JWT_SECRET_KEY'], algorithm='HS256')
+@ns.route('/login')
+class Login(Resource):
+  @api.expect(login_model)
+  def post(self):
+    username = api.payload['username']
+    password = api.payload['password']
 
-    response = jsonify(
-      {'message': 'logged in succesfully', 
-        'id': user.id, 
-        'access_token': jwt_token_encoded, 
-        'expiration_time': exp}
-    )
+    user = User.query.filter_by(username=username).first()
 
-    return response
+    if user and check_password_hash(user.password_hash, password):
+      exp = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+      jwt_token_encoded = jwt.encode({'id': user.id, 'exp': exp}, key=app.config['JWT_SECRET_KEY'], algorithm='HS256')
 
-  else:
-    return make_response(jsonify({'message': 'Invalid username or password'}), 401)
+      response_data = {
+        'message': 'logged in successfully',
+        'id': user.id,
+        'access_token': jwt_token_encoded,
+        'expiration_time': exp.isoformat(),
+      }
+
+      return response_data
+
+    else:
+      return make_response(jsonify({'message': 'Invalid username or password'}), 401)
+
+api.add_resource(Login, '/login')

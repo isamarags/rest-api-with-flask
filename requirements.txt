@@ -2,3 +2,5 @@ flask
 Flask-SQLAlchemy
 Werkzeug
 pyjwt
+flask_restx
+psycopg2

@@ -2,11 +2,14 @@
 <br>
 This is a RESTful API using Python Flask that allows users to login to a platform.
 <br><br>
-## Requirements
+
+### Requirements
 <br>
 - Python 3
 - PostgreSQL
+
 <br>
+
 ## Installation
 <br>
 1. Install pipenv package manager:

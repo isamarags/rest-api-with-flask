@@ -7,8 +7,6 @@ This is a RESTful API using Python Flask that allows users to login to a platfor
   
 - PostgreSQL
 
-<br>
-
 ## Installation
 <br>
 1. Install pipenv package manager:

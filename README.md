@@ -3,8 +3,8 @@ This is a RESTful API using Python Flask that allows users to login to a platfor
 <br>
 
 ### Requirements
-<br>
 - Python 3
+  
 - PostgreSQL
 
 <br>

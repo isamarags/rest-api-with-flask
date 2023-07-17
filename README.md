@@ -33,11 +33,13 @@ Start the server:
 This will start the server on `http://127.0.0.1:5000`.
 
 To test the API, you can use tools like Postman to make API calls.
+<br>
 
 ### API Documentation
 
 The API is documented using Swagger. To access the documentation, go to  `http://127.0.0.1:5000` in your web browser. 
 This will open the Swagger UI, where you can explore all the available endpoints, see their parameters, and make test requests.
+<br>
 
 ### Endpoints
 
